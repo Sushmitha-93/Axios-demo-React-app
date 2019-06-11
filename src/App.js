@@ -1,49 +1,68 @@
 import React, { Component } from "react";
 import "./App.css";
-import Axios from "axios";
+import http from "./services/httpService";
+import config from "./config.json";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 class App extends Component {
   state = {
-    posts: [],
-    appEndPoint: "https://jsonplaceholder.typicode.com/posts"
+    posts: []
   };
 
   async componentDidMount() {
-    const { data: posts } = await Axios.get(this.state.appEndPoint);
+    const { data: posts } = await http.get(config.apiEndPoint);
     //console.log(posts);
     this.setState({ posts });
   }
 
   handleAdd = async () => {
     const obj = { title: "title", body: "body" };
-    const { data: post } = await Axios.post(this.state.appEndPoint, obj);
+    const { data: post } = await http.post(config.apiEndPoint, obj);
     this.setState({ posts: [post, ...this.state.posts] });
     //console.log(post);
   };
 
   handleUpdate = async post => {
-    post.title = "UPDATED";
-    await Axios.put(this.state.appEndPoint + "/" + post.id, post);
-
+    //const originalPosts = [...this.state.posts];
     const posts = [...this.state.posts];
-    const index = posts.indexOf(post);
-    posts[index] = post;
+
+    post.title = "UPDATED";
+
+    await http.put(config.apiEndPoint + "/" + post.id, post);
+    const index = posts.includes(post);
+    posts[index] = { ...post };
     this.setState({ posts });
+    //console.log(originalPosts);
+
     //console.log(data);
   };
 
   handleDelete = async post => {
-    await Axios.delete(this.state.appEndPoint + "/" + post.id);
+    const originalPosts = [...this.state.posts]; //For optimistic update approach
 
-    const posts = this.state.posts.filter(p => p.id != post.id);
+    const posts = this.state.posts.filter(p => p.id !== post.id);
+    console.log("Deltet setState posts");
     this.setState({ posts });
 
+    try {
+      await http.delete("p" + config.apiEndPoint + "/" + post.id);
+      //throw new Error("");
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404)
+        alert("This post has already been deleted!");
+
+      console.log("catch bolck of handle delete");
+      console.log("Dete setState originalPosts");
+      this.setState({ posts: originalPosts });
+    }
     //console.log("Delete", post);
   };
 
   render() {
     return (
       <React.Fragment>
+        <ToastContainer />
         <button className="btn btn-primary" onClick={this.handleAdd}>
           Add
         </button>
