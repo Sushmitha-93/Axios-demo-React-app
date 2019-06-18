@@ -1,6 +1,7 @@
 import Axios from "axios";
 import { toast } from "react-toastify";
 import * as Sentry from "@sentry/browser";
+import logService from "./logService";
 
 Axios.interceptors.response.use(null, error => {
   const expectedError =
@@ -10,7 +11,9 @@ Axios.interceptors.response.use(null, error => {
 
   if (!expectedError) {
     console.log("Logging the error: ", error);
-    Sentry.captureException(error);
+    //Calling sentry log function defined in logService
+    logService.log(error);
+    //Displays a tost noitification
     toast.error("Unexpected error occured!");
   }
 

@@ -46,7 +46,7 @@ class App extends Component {
     this.setState({ posts });
 
     try {
-      await http.delete("p" + config.apiEndPoint + "/" + post.id);
+      await http.delete("ps" + config.apiEndPoint + "/" + post.id);
       //throw new Error("");
     } catch (ex) {
       if (ex.response && ex.response.status === 404)
